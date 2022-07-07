@@ -24,7 +24,7 @@ open class BasePreviewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
     protected var media: LocalMedia? = null
     protected val config: PictureSelectionConfig = PictureSelectionConfig.instance!!
     var coverImageView: PhotoView? = null
-    private fun findViews(itemView: View) {
+    open fun findViews(itemView: View) {
         coverImageView = itemView.findViewById(R.id.preview_image)
     }
 
@@ -52,7 +52,7 @@ open class BasePreviewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
      * @param maxWidth
      * @param maxHeight
      */
-    protected fun loadImage(media: LocalMedia, maxWidth: Int, maxHeight: Int) {
+    protected open fun loadImage(media: LocalMedia, maxWidth: Int, maxHeight: Int) {
         if (PictureSelectionConfig.imageEngine != null) {
             val availablePath: String = media.availablePath!!
             if (maxWidth == PictureConfig.UNSET && maxHeight == PictureConfig.UNSET) {
@@ -69,7 +69,7 @@ open class BasePreviewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
         }
     }
 
-    private fun setOnClickEventListener() {
+    open fun setOnClickEventListener() {
         coverImageView?.setOnViewTapListener(object : OnViewTapListener {
             override fun onViewTap(view: View?, x: Float, y: Float) {
                 if (mPreviewEventListener != null) {
@@ -79,7 +79,7 @@ open class BasePreviewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
         })
     }
 
-    private fun setOnLongClickEventListener() {
+    open fun setOnLongClickEventListener() {
         coverImageView?.setOnLongClickListener {
             if (mPreviewEventListener != null) {
                 mPreviewEventListener!!.onLongPressDownload(media)
@@ -144,12 +144,12 @@ open class BasePreviewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
         /**
          * video
          */
-        private const val ADAPTER_TYPE_VIDEO = 2
+        const val ADAPTER_TYPE_VIDEO = 2
 
         /**
          * Audio
          */
-        private const val ADAPTER_TYPE_AUDIO = 3
+        const val ADAPTER_TYPE_AUDIO = 3
         fun generate(parent: ViewGroup, viewType: Int, resource: Int): BasePreviewHolder {
             val itemView = LayoutInflater.from(parent.context).inflate(resource, parent, false)
             return when (viewType) {

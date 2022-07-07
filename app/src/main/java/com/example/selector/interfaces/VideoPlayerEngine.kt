@@ -2,7 +2,7 @@ package com.example.selector.interfaces
 
 import android.content.Context
 import android.view.View
-import com.google.android.exoplayer2.Player
+import com.example.selector.engine.MediaPlayerView
 import com.luck.picture.lib.entity.LocalMedia
 
 interface VideoPlayerEngine<T> {
@@ -44,7 +44,7 @@ interface VideoPlayerEngine<T> {
      *
      * @param playerListener
      */
-    fun addPlayListener(playerListener: Player.Listener)
+     fun addPlayListener(playerListener: OnPlayerListener?)
 
     /**
      * removePlayListener
@@ -61,7 +61,7 @@ interface VideoPlayerEngine<T> {
      *
      * @param player
      */
-    fun onPlayerAttachedToWindow(player: View?)
+    fun onPlayerAttachedToWindow(player: MediaPlayerView?)
 
     /**
      * Player detached to window

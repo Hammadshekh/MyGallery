@@ -30,8 +30,9 @@ class ViewParams : Parcelable {
     }
 
     companion object {
-        val CREATOR: Creator<ViewParams> = object : Creator<ViewParams?> {
-            override fun createFromParcel(source: Parcel): ViewParams? {
+        @JvmField
+        val CREATOR: Creator<ViewParams> = object : Creator<ViewParams> {
+            override fun createFromParcel(source: Parcel): ViewParams {
                 return ViewParams(source)
             }
 

@@ -1,5 +1,8 @@
 package com.example.camerax
 
+import com.example.camerax.listener.OnSimpleXPermissionDeniedListener
+import com.example.camerax.listener.OnSimpleXPermissionDescriptionListener
+
 object CustomCameraConfig {
     /**
      * 两者都可以

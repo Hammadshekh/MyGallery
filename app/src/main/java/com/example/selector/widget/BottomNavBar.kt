@@ -54,7 +54,7 @@ open class BottomNavBar : RelativeLayout, View.OnClickListener {
         handleLayoutUI()
     }
 
-    protected fun inflateLayout() {
+    protected open fun inflateLayout() {
         inflate(context, R.layout.ps_bottom_nav_bar, this)
     }
 

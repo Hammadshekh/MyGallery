@@ -4,9 +4,12 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.TextView
+import com.example.mygallery.R
+import com.example.selector.widget.TitleBar
 
 class CustomTitleBar : TitleBar, View.OnClickListener {
-    val titleCancelView: TextView
+
+    override  val titleCancelView: TextView?
         get() = tvCancel
 
     constructor(context: Context?) : super(context) {}
@@ -16,11 +19,11 @@ class CustomTitleBar : TitleBar, View.OnClickListener {
         defStyleAttr) {
     }
 
-    protected fun inflateLayout() {
-        inflate(getContext(), R.layout.ps_custom_title_bar, this)
+    private fun inflateLayout() {
+        inflate(context, R.layout.ps_custom_title_bar, this)
     }
 
-    fun setTitleBarStyle() {
+    override fun setTitleBarStyle() {
         super.setTitleBarStyle()
     }
 }

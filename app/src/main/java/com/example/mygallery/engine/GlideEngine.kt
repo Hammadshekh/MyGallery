@@ -6,6 +6,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.mygallery.R
+import com.example.selector.utils.ActivityCompatHelper
 
 class GlideEngine private constructor() : ImageEngine {
     override fun loadImage(context: Context?, url: String?, imageView: ImageView?) {
@@ -37,26 +38,30 @@ class GlideEngine private constructor() : ImageEngine {
         if (!ActivityCompatHelper.assertValidRequest(context)) {
             return
         }
-        Glide.with(context!!)
-            .asBitmap()
-            .load(url)
-            .override(180, 180)
-            .sizeMultiplier(0.5f)
-            .transform(CenterCrop(), RoundedCorners(8))
-            .placeholder(R.drawable.ps_image_placeholder)
-            .into(imageView)
+        imageView?.let {
+            Glide.with(context!!)
+                .asBitmap()
+                .load(url)
+                .override(180, 180)
+                .sizeMultiplier(0.5f)
+                .transform(CenterCrop(), RoundedCorners(8))
+                .placeholder(R.drawable.ps_image_placeholder)
+                .into(it)
+        }
     }
 
     override fun loadGridImage(context: Context?, url: String?, imageView: ImageView?) {
         if (!ActivityCompatHelper.assertValidRequest(context)) {
             return
         }
-        Glide.with(context!!)
-            .load(url)
-            .override(200, 200)
-            .centerCrop()
-            .placeholder(R.drawable.ps_image_placeholder)
-            .into(imageView)
+        imageView?.let {
+            Glide.with(context!!)
+                .load(url)
+                .override(200, 200)
+                .centerCrop()
+                .placeholder(R.drawable.ps_image_placeholder)
+                .into(it)
+        }
     }
 
     override fun pauseRequests(context: Context?) {

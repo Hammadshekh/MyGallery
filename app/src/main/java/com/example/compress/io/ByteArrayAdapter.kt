@@ -1,8 +1,8 @@
 package com.example.compress.io
 
-class ByteArrayAdapter : ArrayAdapterInterface<ByteArray?> {
-    fun getArrayLength(array: ByteArray): Int {
-        return array.size
+class ByteArrayAdapter(override val tag: String?) : ArrayAdapterInterface<ByteArray?> {
+   override fun getArrayLength(array: ByteArray?): Int {
+        return array!!.size
     }
 
     override fun newArray(length: Int): ByteArray {
@@ -11,9 +11,4 @@ class ByteArrayAdapter : ArrayAdapterInterface<ByteArray?> {
 
     override val elementSizeInBytes: Int
         get() = 1
-
-    companion object {
-        val tag = "ByteArrayPool"
-            get() = Companion.field
-    }
 }

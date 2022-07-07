@@ -1,5 +1,6 @@
 package com.example.selector.engine
 
+import com.example.mygallery.engine.ImageEngine
 import com.example.selector.basic.IBridgeLoaderFactory
 import com.example.selector.interfaces.OnInjectLayoutResourceListener
 import com.example.selector.interfaces.OnResultCallbackListener
@@ -11,7 +12,7 @@ interface PictureSelectorEngine {
      *
      * @return
      */
-    fun createImageLoaderEngine(): ImageEngine?
+    fun createImageLoaderEngine(): ImageEngine
 
     /**
      * Create compress Engine
@@ -67,5 +68,5 @@ interface PictureSelectorEngine {
      *
      * @return
      */
-    val resultCallbackListener: OnResultCallbackListener<LocalMedia?>?
+    val resultCallbackListener: OnResultCallbackListener<LocalMedia>
 }

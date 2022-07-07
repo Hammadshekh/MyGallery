@@ -25,6 +25,7 @@ import com.example.selector.config.*
 import com.example.selector.config.SelectMimeType.ofAudio
 import com.example.selector.decoration.GridSpacingItemDecoration
 import com.example.selector.dialog.AlbumListPopWindow
+import com.example.selector.engine.RecyclerPreloadView
 import com.example.selector.entity.LocalMediaFolder
 import com.example.selector.interfaces.*
 import com.example.selector.loader.IBridgeMediaLoader
@@ -84,7 +85,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
             } else R.layout.ps_fragment_selector
         }
 
-    override fun onSelectedChange(isAddRemove: Boolean, currentMedia: LocalMedia?) {
+    override fun onSelectedChange(isAddRemove: Boolean, currentMedia: LocalMedia) {
         bottomNarBar?.setSelectedChange()
         completeSelectView?.setSelectedChange(false)
         // 刷新列表数据
@@ -100,7 +101,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
         }
     }
 
-    override fun onFixedSelectedChange(oldLocalMedia: LocalMedia?) {
+    override fun onFixedSelectedChange(oldLocalMedia: LocalMedia) {
         if (oldLocalMedia != null) {
             mAdapter?.notifyItemPositionChanged(oldLocalMedia.position)
         }
@@ -109,7 +110,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
     override fun sendChangeSubSelectPositionEvent(adapterChange: Boolean) {
         if (PictureSelectionConfig.selectorStyle!!.selectMainStyle!!.isSelectNumberStyle) {
             for (index in 0 until SelectedManager.selectCount) {
-                val media: LocalMedia = SelectedManager.getSelectedResult()[index]
+                val media: LocalMedia = SelectedManager.selectedResult[index]
                 media.num = index + 1
                 if (adapterChange) {
                     mAdapter.notifyItemPositionChanged(media.position)
@@ -349,12 +350,12 @@ class PictureSelectorFragment : PictureCommonFragment(),
                 firstFolder = albumData[0]
                 SelectedManager.currentLocalMediaFolder = (firstFolder)
             }
-            titleBar.setTitle(firstFolder.getFolderName())
+            titleBar.setTitle(firstFolder.folderName)
             albumListPopWindow.bindAlbumData(albumData)
             if (config.isPageStrategy) {
                 handleFirstPageMedia(ArrayList(SelectedManager.dataSource), true)
             } else {
-                setAdapterData(firstFolder.getData())
+                firstFolder.data?.let { setAdapterData(it) }
             }
         } else {
             showDataNull()
@@ -417,7 +418,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
      * 开始获取数据
      */
     private fun beginLoadData() {
-        onPermissionExplainEvent(false, null)
+        onPermissionExplainEvent(false, emptyArray())
         if (config.isOnlySandboxDir) {
             loadOnlyInAppDirectoryAllMediaData()
         } else {
@@ -426,7 +427,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
     }
 
     override fun handlePermissionSettingResult(permissions: Array<String>) {
-        onPermissionExplainEvent(false, null)
+        onPermissionExplainEvent(false, emptyArray())
         val isHasCamera = permissions.isNotEmpty() && TextUtils.equals(permissions[0],
             PermissionConfig.CAMERA[0])
         val isHasPermissions: Boolean = if (PictureSelectionConfig.onPermissionsEventListener != null) {
@@ -470,12 +471,12 @@ class PictureSelectorFragment : PictureCommonFragment(),
                         config.isDisplayCamera == true && curFolder.bucketId.equals(PictureConfig.ALL)
                 }
                 mAdapter.isDisplayCamera
-                titleBar?.setTitle(curFolder?.getFolderName())
+                titleBar?.setTitle(curFolder?.folderName)
                 val lastFolder: LocalMediaFolder = SelectedManager.currentLocalMediaFolder!!
                 val lastBucketId: Long = lastFolder.bucketId
                 if (config?.isPageStrategy) {
                     if (curFolder?.bucketId != lastBucketId) {
-                        lastFolder.setData(mAdapter.data)
+                        lastFolder.data = (mAdapter.data)
                         lastFolder.currentDataPage = (mPage)
                         lastFolder.isHasMore = (mRecycler.isEnabledLoadMore)
 
@@ -575,14 +576,14 @@ class PictureSelectorFragment : PictureCommonFragment(),
         if (PictureSelectionConfig.loaderDataEngine != null) {
             PictureSelectionConfig.loaderDataEngine!!.loadAllAlbumData(context,
                 object : OnQueryAllAlbumListener<LocalMediaFolder> {
-                    override fun onComplete(result: List<LocalMediaFolder>?) {
-                        handleAllAlbumData(result!!)
+                    override fun onComplete(result: List<LocalMediaFolder>) {
+                        handleAllAlbumData(result)
                     }
                 })
         } else {
             mLoader?.loadAllAlbum(object : OnQueryAllAlbumListener<LocalMediaFolder> {
-                override fun onComplete(result: List<LocalMediaFolder>?) {
-                    handleAllAlbumData(result!!)
+                override fun onComplete(result: List<LocalMediaFolder>) {
+                    handleAllAlbumData(result)
                 }
             })
         }
@@ -600,12 +601,12 @@ class PictureSelectorFragment : PictureCommonFragment(),
                 firstFolder = result[0]
                 SelectedManager.currentLocalMediaFolder = (firstFolder)
             }
-            titleBar.setTitle(firstFolder.getFolderName())
+            titleBar.setTitle(firstFolder.folderName)
             albumListPopWindow.bindAlbumData(result)
             if (config.isPageStrategy) {
                 loadFirstPageMediaData(firstFolder.bucketId)
             } else {
-                setAdapterData(firstFolder.getData())
+                firstFolder.data?.let { setAdapterData(it) }
             }
         } else {
             showDataNull()
@@ -671,7 +672,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
         if (!ActivityCompatHelper.isDestroy(activity)) {
             val sandboxDir: String = config?.sandboxDir.toString()
             val isNonNull = folder != null
-            val folderName = if (isNonNull) folder?.getFolderName() else File(sandboxDir).name
+            val folderName = if (isNonNull) folder?.folderName else File(sandboxDir).name
             titleBar.setTitle(folderName)
             if (isNonNull) {
                 SelectedManager.currentLocalMediaFolder = (folder)
@@ -764,7 +765,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
                         val animation = AnimationUtils.loadAnimation(
                             context, R.anim.ps_anim_modal_in)
                         SELECT_ANIM_DURATION = animation.duration.toInt()
-                        selectedView?.startAnimation(animation)
+                        selectedView.startAnimation(animation)
                     }
                 }
                 return selectResultCode!!
@@ -830,7 +831,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
                 override val selection: HashSet<Int>
                     get() {
                         for (i in 0 until SelectedManager.selectCount) {
-                            val media = SelectedManager.getSelectedResult()[i]
+                            val media = SelectedManager.selectedResult[i]
                             selectedPosition.add(media.position)
                         }
                         return selectedPosition
@@ -848,7 +849,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
                     }
                     val media = adapterData[start]
                     val selectResultCode =
-                        confirmSelect(media, SelectedManager.getSelectedResult().contains(media))
+                        confirmSelect(media, SelectedManager.selectedResult.contains(media))
                     mDragSelectTouchListener.setActive(selectResultCode != SelectedManager.INVALID)
                 }
             })
@@ -907,7 +908,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
                     PictureSelectorPreviewFragment.fragmentTag)
             } == true
         ) {
-            val data: ArrayList<LocalMedia?>?
+            val data: ArrayList<LocalMedia>
             val totalNum: Int
             var currentBucketId: Long = 0
             if (isBottomPreview) {
@@ -1056,7 +1057,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
         }
     }
 
-    override fun dispatchCameraMediaResult(media: LocalMedia?) {
+    override fun dispatchCameraMediaResult(media: LocalMedia) {
         val exitsTotalNum: Int = albumListPopWindow.firstAlbumImageCount!!
         if (!isAddSameImp(exitsTotalNum)) {
             mAdapter.data.add(0, media!!)
@@ -1104,7 +1105,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
 
     private fun mergeFolder(media: LocalMedia) {
         val allFolder: LocalMediaFolder
-        val albumList: ArrayList<LocalMediaFolder?> = albumListPopWindow.albumList as ArrayList<LocalMediaFolder?>
+        val albumList: ArrayList<LocalMediaFolder> = albumListPopWindow.albumList as ArrayList<LocalMediaFolder>
         if (albumListPopWindow.folderCount == 0) {
             // 1、没有相册时需要手动创建相机胶卷
             allFolder = LocalMediaFolder()
@@ -1114,10 +1115,10 @@ class PictureSelectorFragment : PictureCommonFragment(),
             } else ({
                 config.defaultAlbumName
             }).toString()
-            allFolder.setFolderName(folderName)
+            allFolder.folderName = (folderName)
             allFolder.firstImagePath = ""
             allFolder.bucketId = (PictureConfig.ALL.toLong())
-            albumList?.add(0, allFolder)
+            albumList.add(0, allFolder)
         } else {
             // 2、有相册就找到对应的相册把数据加进去
             allFolder = albumListPopWindow.getFolder(0)!!
@@ -1133,13 +1134,11 @@ class PictureSelectorFragment : PictureCommonFragment(),
         }
         // 先查找Camera目录，没有找到则创建一个Camera目录
         var cameraFolder: LocalMediaFolder? = null
-        if (albumList != null) {
-            for (i in albumList.indices) {
-                val exitsFolder: LocalMediaFolder = albumList[i] as LocalMediaFolder
-                if (TextUtils.equals(exitsFolder.getFolderName(), media.parentFolderName)) {
-                    cameraFolder = exitsFolder
-                    break
-                }
+        for (i in albumList.indices) {
+            val exitsFolder: LocalMediaFolder = albumList[i] as LocalMediaFolder
+            if (TextUtils.equals(exitsFolder.folderName, media.parentFolderName)) {
+                cameraFolder = exitsFolder
+                break
             }
         }
         if (cameraFolder == null) {
@@ -1147,7 +1146,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
             cameraFolder = LocalMediaFolder()
             albumList?.add(cameraFolder)
         }
-        cameraFolder.setFolderName(media.parentFolderName)
+        cameraFolder.folderName = (media.parentFolderName)
         if (cameraFolder.bucketId.equals(-1) || cameraFolder.bucketId.equals(0)) {
             cameraFolder.bucketId = (media.bucketId)
         }
@@ -1158,7 +1157,7 @@ class PictureSelectorFragment : PictureCommonFragment(),
                 || !TextUtils.isEmpty(config.outPutCameraDir)
                 || !TextUtils.isEmpty(config.outPutAudioDir)
             ) {
-                cameraFolder.getData().add(0, media)
+                cameraFolder.data!!.add(0, media)
             }
         }
         cameraFolder.folderTotalNum = (if (isAddSameImp(allFolder.folderTotalNum)) cameraFolder.folderTotalNum else cameraFolder.folderTotalNum + 1)
@@ -1211,20 +1210,19 @@ class PictureSelectorFragment : PictureCommonFragment(),
         }
     }
 
-    /*  companion object {
-          val fragmentTag = PictureSelectorFragment::class.java.simpleName
-              get() = Companion.field
+      companion object {
+          /*val fragmentTag = PictureSelectorFragment::class.java.simpleName
+              get() = Companion.field*/
 
-          */
+
     /**
      * 这个时间对应的是R.anim.ps_anim_modal_in里面的
-     *//*
-        private var SELECT_ANIM_DURATION = 135
-        private val LOCK = Any()
+     */
+
         fun newInstance(): PictureSelectorFragment {
             val fragment = PictureSelectorFragment()
-            fragment.setArguments(Bundle())
+        fragment.arguments = Bundle()
             return fragment
         }
-    }*/
+    }
 }

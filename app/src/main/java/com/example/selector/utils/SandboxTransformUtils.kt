@@ -2,14 +2,11 @@ package com.example.selector.utils
 
 import android.content.Context
 import android.net.Uri
-import com.example.camerax.utils.FileUtils.isContent
-import com.example.compress.Checker.Companion.isContent
 import com.example.selector.basic.PictureContentResolver
 import com.example.selector.config.PictureMimeType
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.lang.Exception
 
 object SandboxTransformUtils {
     /**
@@ -34,14 +31,13 @@ object SandboxTransformUtils {
         ctx: Context?,
         url: String?,
         mineType: String?,
-        customFileName: String? = "",
+        customFileName: String? = ""
     ): String? {
         try {
-            val inputStream: InputStream
             val sandboxPath = PictureFileUtils.createFilePath(ctx!!, "", mineType, customFileName)
-            inputStream = if (PictureMimeType.isContent(url)) ({
+            val inputStream: InputStream? = if (PictureMimeType.isContent(url!!)) {
                 PictureContentResolver.getContentResolverOpenInputStream(ctx, Uri.parse(url))
-            })!! else {
+            } else {
                 FileInputStream(url)
             }
             val copyFileSuccess =

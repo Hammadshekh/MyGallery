@@ -4,16 +4,19 @@ import android.content.Context
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnLongClickListener
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.example.mygallery.R
 import com.example.mygallery.listener.OnItemLongClickListener
-import java.lang.Exception
-import java.util.ArrayList
+import com.example.selector.config.PictureMimeType
+import com.example.selector.config.SelectMimeType
+import com.example.selector.utils.DateUtils
+import com.luck.picture.lib.entity.LocalMedia
+import java.util.*
 
 class GridImageAdapter(context: Context?, result: List<LocalMedia>?) :
     RecyclerView.Adapter<GridImageAdapter.ViewHolder>() {
@@ -36,7 +39,7 @@ class GridImageAdapter(context: Context?, result: List<LocalMedia>?) :
         }
     }
 
-    val data: ArrayList<Any>
+    val data: ArrayList<LocalMedia>
         get() = list
 
     fun remove(position: Int) {
@@ -102,7 +105,7 @@ class GridImageAdapter(context: Context?, result: List<LocalMedia>?) :
         } else {
             viewHolder.mIvDel.visibility = View.VISIBLE
             viewHolder.mIvDel.setOnClickListener { view: View? ->
-                val index: Int = viewHolder.getAbsoluteAdapterPosition()
+                val index: Int = viewHolder.absoluteAdapterPosition
                 if (index != RecyclerView.NO_POSITION && list.size > index) {
                     list.removeAt(index)
                     notifyItemRemoved(index)
@@ -110,11 +113,11 @@ class GridImageAdapter(context: Context?, result: List<LocalMedia>?) :
                 }
             }
             val media: LocalMedia = list[position]
-            val chooseModel: Int = media.getChooseModel()
-            val path: String = media.getAvailablePath()
-            val duration: Long = media.getDuration()
+            val chooseModel: Int = media.chooseModel
+            val path: String = media.availablePath
+            val duration: Long = media.duration
             viewHolder.tvDuration.visibility =
-                if (PictureMimeType.isHasVideo(media.getMimeType())) View.VISIBLE else View.GONE
+                if (media.mimeType?.let { PictureMimeType.isHasVideo(it) } == true) View.VISIBLE else View.GONE
             if (chooseModel == SelectMimeType.ofAudio()) {
                 viewHolder.tvDuration.visibility = View.VISIBLE
                 viewHolder.tvDuration.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ps_ic_audio,
@@ -127,7 +130,7 @@ class GridImageAdapter(context: Context?, result: List<LocalMedia>?) :
                     0,
                     0)
             }
-            viewHolder.tvDuration.setText(DateUtils.formatDurationTime(duration))
+            viewHolder.tvDuration.text = DateUtils.formatDurationTime(duration)
             if (chooseModel == SelectMimeType.ofAudio()) {
                 viewHolder.mImg.setImageResource(R.drawable.ps_audio_placeholder)
             } else {
@@ -142,14 +145,14 @@ class GridImageAdapter(context: Context?, result: List<LocalMedia>?) :
             //itemView 的点击事件
             if (mItemClickListener != null) {
                 viewHolder.itemView.setOnClickListener { v: View? ->
-                    val adapterPosition: Int = viewHolder.getAbsoluteAdapterPosition()
+                    val adapterPosition: Int = viewHolder.absoluteAdapterPosition
                     mItemClickListener!!.onItemClick(v, adapterPosition)
                 }
             }
             if (mItemLongClickListener != null) {
                 viewHolder.itemView.setOnLongClickListener { v: View? ->
-                    val adapterPosition: Int = viewHolder.getAbsoluteAdapterPosition()
-                    mItemLongClickListener.onItemLongClick(viewHolder, adapterPosition, v)
+                    val adapterPosition: Int = viewHolder.absoluteAdapterPosition
+                    mItemLongClickListener!!.onItemLongClick(viewHolder, adapterPosition, v)
                     true
                 }
             }

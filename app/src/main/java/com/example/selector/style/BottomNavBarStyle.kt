@@ -154,8 +154,9 @@ class BottomNavBarStyle : Parcelable {
     }
 
     companion object {
-        val CREATOR: Creator<BottomNavBarStyle> = object : Creator<BottomNavBarStyle?> {
-            override fun createFromParcel(`in`: Parcel): BottomNavBarStyle? {
+        @JvmField
+        val CREATOR: Creator<BottomNavBarStyle> = object : Creator<BottomNavBarStyle> {
+            override fun createFromParcel(`in`: Parcel): BottomNavBarStyle {
                 return BottomNavBarStyle(`in`)
             }
 

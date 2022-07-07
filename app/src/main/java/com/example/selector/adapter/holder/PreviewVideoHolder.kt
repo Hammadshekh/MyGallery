@@ -1,149 +1,264 @@
 package com.example.selector.adapter.holder
 
-import android.net.Uri
 import android.view.Gravity
 import android.view.View
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.ProgressBar
+import android.view.ViewGroup
+import android.widget.*
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import com.example.mygallery.R
-import com.example.selector.config.PictureMimeType
+import com.example.selector.config.PictureConfig
 import com.example.selector.config.PictureSelectionConfig
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.PlaybackException
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.example.selector.engine.MediaPlayerEngine
+import com.example.selector.interfaces.OnPlayerListener
+import com.example.selector.interfaces.VideoPlayerEngine
+import com.example.selector.photoview.OnViewTapListener
 import com.luck.picture.lib.entity.LocalMedia
-import java.io.File
 
 class PreviewVideoHolder(itemView: View) : BasePreviewHolder(itemView) {
-    var ivPlayButton: ImageView = itemView.findViewById(R.id.iv_play_video)
-    var mPlayerView: StyledPlayerView = itemView.findViewById(R.id.playerView)
+    var ivPlayButton: ImageView
     var progress: ProgressBar? = null
-    var videoPlayer: View? = null
+    var videoPlayer: View?
+    private var isPlayed = false
+    private fun findViews(itemView: View?) {}
+    override fun loadImage(media: LocalMedia, maxWidth: Int, maxHeight: Int) {
+        if (PictureSelectionConfig.imageEngine != null) {
+            val availablePath = media.availablePath
+            if (maxWidth == PictureConfig.UNSET && maxHeight == PictureConfig.UNSET) {
+                PictureSelectionConfig.imageEngine!!.loadImage(
+                    itemView.context,
+                    availablePath,
+                    coverImageView
+                )
+            } else {
+                PictureSelectionConfig.imageEngine!!.loadImage(
+                    itemView.context,
+                    coverImageView,
+                    availablePath,
+                    maxWidth,
+                    maxHeight
+                )
+            }
+        }
+    }
+
+    private fun onClickBackPressed() {
+        coverImageView!!.setOnViewTapListener(object : OnViewTapListener {
+            override fun onViewTap(view: View?, x: Float, y: Float) {
+                if (mPreviewEventListener != null) {
+                    mPreviewEventListener!!.onBackPressed()
+                }
+            }
+        })
+    }
+
+    private fun onLongPressDownload(media: LocalMedia?) {
+        coverImageView!!.setOnLongClickListener {
+            if (mPreviewEventListener != null) {
+                mPreviewEventListener!!.onLongPressDownload(media)
+            }
+            false
+        }
+    }
+
     override fun bindData(media: LocalMedia, position: Int) {
         super.bindData(media, position)
         setScaleDisplaySize(media)
-        ivPlayButton.setOnClickListener { startPlay() }
+        ivPlayButton.setOnClickListener {
+            if (config.isPauseResumePlay) {
+                dispatchPlay()
+            } else {
+                startPlay()
+            }
+        }
         itemView.setOnClickListener {
-            if (mPreviewEventListener != null) {
-                mPreviewEventListener!!.onBackPressed()
+            if (config.isPauseResumePlay) {
+                dispatchPlay()
+            } else {
+                if (mPreviewEventListener != null) {
+                    mPreviewEventListener!!.onBackPressed()
+                }
             }
         }
     }
 
-    private fun startPlay() {
-        val player: Player = mPlayerView.player!!
-        val path: String = media?.availablePath!!
-        progress?.visibility = View.VISIBLE
+    /**
+     * 视频播放状态分发
+     */
+    private fun dispatchPlay() {
+        if (isPlayed) {
+            if (isPlaying) {
+                onPause()
+            } else {
+                onResume()
+            }
+        } else {
+            startPlay()
+        }
+    }
+
+    /**
+     * 恢复播放
+     */
+    private fun onResume() {
         ivPlayButton.visibility = View.GONE
-        mPreviewEventListener!!.onPreviewVideoTitle(media?.fileName)
-        val mediaItem: MediaItem = when {
-            PictureMimeType.isContent(path) -> {
-                MediaItem.fromUri(Uri.parse(path))
-            }
-            PictureMimeType.isHasHttp(path) -> {
-                MediaItem.fromUri(path)
-            }
-            else -> {
-                MediaItem.fromUri(Uri.fromFile(File(path)))
-            }
-        }
-        player.repeatMode = if (config.isLoopAutoPlay) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
-        player.setMediaItem(mediaItem)
-        player.prepare()
-        player.play()
-    }
-
-    override fun setScaleDisplaySize(media: LocalMedia) {
-        media.let { super.setScaleDisplaySize(it) }
-        if (!config.isPreviewZoomEffect && screenWidth < screenHeight) {
-            val playerLayoutParams = mPlayerView.layoutParams as FrameLayout.LayoutParams
-            playerLayoutParams.width = screenWidth
-            playerLayoutParams.height = screenAppInHeight
-            playerLayoutParams.gravity = Gravity.CENTER
+        if (PictureSelectionConfig.videoPlayerEngine != null) {
+            PictureSelectionConfig.videoPlayerEngine!!.onResume(videoPlayer)
         }
     }
 
-    private val mPlayerListener: Player.Listener = object : Player.Listener {
-        override fun onPlayerError(error: PlaybackException) {
+    /**
+     * 暂停播放
+     */
+    private fun onPause() {
+        ivPlayButton.visibility = View.VISIBLE
+        if (PictureSelectionConfig.videoPlayerEngine != null) {
+            PictureSelectionConfig.videoPlayerEngine!!.onPause(videoPlayer)
+        }
+    }
+
+    /**
+     * 是否正在播放中
+     */
+    val isPlaying: Boolean
+        get() = (PictureSelectionConfig.videoPlayerEngine != null
+                && PictureSelectionConfig.videoPlayerEngine!!.isPlaying(videoPlayer))
+
+    /**
+     * 外部播放状态监听回调
+     */
+    private val mPlayerListener: OnPlayerListener = object : OnPlayerListener {
+        override fun onPlayerError() {
             playerDefaultUI()
         }
 
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            when (playbackState) {
-                Player.STATE_READY -> {
-                    playerIngUI()
-                }
-                Player.STATE_BUFFERING -> {
-                    progress?.visibility = View.VISIBLE
-                }
-                Player.STATE_ENDED -> {
-                    playerDefaultUI()
-                }
-                Player.STATE_IDLE -> {
-                    TODO()
-                }
+        override fun onPlayerReady() {
+            playerIngUI()
+        }
+
+        override fun onPlayerLoading() {
+            progress!!.visibility = View.VISIBLE
+        }
+
+        override fun onPlayerEnd() {
+            playerDefaultUI()
+        }
+    }
+
+    /**
+     * 开始播放视频
+     */
+    fun startPlay() {
+        if (videoPlayer == null) {
+            throw NullPointerException("VideoPlayer cannot be empty,Please implement " + VideoPlayerEngine::class.java)
+        }
+        if (PictureSelectionConfig.videoPlayerEngine != null) {
+            progress!!.visibility = View.VISIBLE
+            ivPlayButton.visibility = View.GONE
+            mPreviewEventListener!!.onPreviewVideoTitle(media!!.fileName)
+            isPlayed = true
+            PictureSelectionConfig.videoPlayerEngine!!.onStarPlayer(videoPlayer, media)
+        }
+    }
+
+    override fun setScaleDisplaySize(media: LocalMedia) {
+        super.setScaleDisplaySize(media)
+        if (!config.isPreviewZoomEffect && screenWidth < screenHeight) {
+            val layoutParams = videoPlayer!!.layoutParams
+            if (layoutParams is FrameLayout.LayoutParams) {
+                val playerLayoutParams = layoutParams
+                playerLayoutParams.width = screenWidth
+                playerLayoutParams.height = screenAppInHeight
+                playerLayoutParams.gravity = Gravity.CENTER
+            } else if (layoutParams is RelativeLayout.LayoutParams) {
+                val playerLayoutParams = layoutParams
+                playerLayoutParams.width = screenWidth
+                playerLayoutParams.height = screenAppInHeight
+                playerLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT)
+            } else if (layoutParams is LinearLayout.LayoutParams) {
+                val playerLayoutParams = layoutParams
+                playerLayoutParams.width = screenWidth
+                playerLayoutParams.height = screenAppInHeight
+                playerLayoutParams.gravity = Gravity.CENTER
+            } else if (layoutParams is ConstraintLayout.LayoutParams) {
+                val playerLayoutParams = layoutParams
+                playerLayoutParams.width = screenWidth
+                playerLayoutParams.height = screenAppInHeight
+                playerLayoutParams.topToTop = ConstraintSet.PARENT_ID
+                playerLayoutParams.bottomToBottom = ConstraintSet.PARENT_ID
             }
         }
     }
 
     private fun playerDefaultUI() {
+        isPlayed = false
         ivPlayButton.visibility = View.VISIBLE
-        progress?.visibility = View.GONE
-        coverImageView?.visibility = View.VISIBLE
-        mPlayerView.visibility = View.GONE
+        progress!!.visibility = View.GONE
+        coverImageView!!.visibility = View.VISIBLE
+        videoPlayer!!.visibility = View.GONE
         if (mPreviewEventListener != null) {
             mPreviewEventListener!!.onPreviewVideoTitle(null)
         }
     }
 
     private fun playerIngUI() {
-        if (progress?.visibility == View.VISIBLE) {
-            progress?.visibility = View.GONE
-
-        }
-        if (ivPlayButton.visibility == View.VISIBLE) {
-            ivPlayButton.visibility = View.GONE
-        }
-        if (coverImageView?.visibility == View.VISIBLE) {
-            coverImageView?.visibility = View.GONE
-        }
-        if (mPlayerView.visibility == View.GONE) {
-            mPlayerView.visibility = View.VISIBLE
-        }
+        progress!!.visibility = View.GONE
+        ivPlayButton.visibility = View.GONE
+        coverImageView!!.visibility = View.GONE
+        videoPlayer!!.visibility = View.VISIBLE
     }
+
     override fun onViewAttachedToWindow() {
-        if (PictureSelectionConfig. videoPlayerEngine != null) {
+        if (PictureSelectionConfig.videoPlayerEngine != null) {
             PictureSelectionConfig.videoPlayerEngine!!.onPlayerAttachedToWindow(videoPlayer)
             PictureSelectionConfig.videoPlayerEngine!!.addPlayListener(mPlayerListener)
         }
     }
 
     override fun onViewDetachedFromWindow() {
-        val player: Player = mPlayerView.player!!
-        player.removeListener(mPlayerListener)
-        player.release()
-        mPlayerView.player = null
+        if (PictureSelectionConfig.videoPlayerEngine != null) {
+            PictureSelectionConfig.videoPlayerEngine!!.onPlayerDetachedFromWindow(videoPlayer)
+            PictureSelectionConfig.videoPlayerEngine!!.removePlayListener(mPlayerListener)
+        }
         playerDefaultUI()
     }
 
     /**
-     *
-    freed VideoView
+     * 释放VideoView
      */
     fun releaseVideo() {
-        val player: Player? = mPlayerView.player
-        if (player != null) {
-            player.removeListener(mPlayerListener)
-            player.release()
+        if (PictureSelectionConfig.videoPlayerEngine != null) {
+            PictureSelectionConfig.videoPlayerEngine!!.removePlayListener(mPlayerListener)
+            PictureSelectionConfig.videoPlayerEngine!!.destroy(videoPlayer)
         }
     }
 
     init {
+        ivPlayButton = itemView.findViewById(R.id.iv_play_video)
         progress = itemView.findViewById(R.id.progress)
-        mPlayerView.useController = false
         val config: PictureSelectionConfig = PictureSelectionConfig.instance!!
         ivPlayButton.visibility = if (config.isPreviewZoomEffect) View.GONE else View.VISIBLE
+        if (PictureSelectionConfig.videoPlayerEngine == null) {
+            PictureSelectionConfig.videoPlayerEngine = MediaPlayerEngine()
+        }
+        videoPlayer =
+            PictureSelectionConfig.videoPlayerEngine!!.onCreateVideoPlayer(itemView.context)
+        if (videoPlayer == null) {
+            throw NullPointerException("onCreateVideoPlayer cannot be empty,Please implement " + VideoPlayerEngine::class.java)
+        }
+        if (videoPlayer!!.layoutParams == null) {
+            videoPlayer!!.layoutParams =
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+        }
+        val viewGroup = itemView as ViewGroup
+        if (viewGroup.indexOfChild(videoPlayer) != -1) {
+            viewGroup.removeView(videoPlayer)
+        }
+        viewGroup.addView(videoPlayer, 0)
+        videoPlayer!!.visibility = View.GONE
     }
 }
+

@@ -105,11 +105,11 @@ class AlbumListPopWindow(private val mContext: Context?) : PopupWindow() {
                 folder.isSelectTag = (false)
                 mAdapter?.notifyItemChanged(i)
                 for (j in 0 until SelectedManager.selectCount) {
-                    val media: LocalMedia = SelectedManager.getSelectedResult()[j]
-                    if (TextUtils.equals(folder.getFolderName(), media.parentFolderName)
+                    val media: LocalMedia = SelectedManager.selectedResult[j]
+                    if (TextUtils.equals(folder.folderName, media.parentFolderName)
                         || folder.bucketId.equals(PictureConfig.ALL)
                     ) {
-                        folder.isSelectTag=(true)
+                        folder.isSelectTag = (true)
                         mAdapter?.notifyItemChanged(i)
                         break
                     }

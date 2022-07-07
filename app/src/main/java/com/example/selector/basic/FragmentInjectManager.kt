@@ -4,7 +4,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.example.mygallery.R
-import com.example.selector.PictureSelectorPreviewFragment
 import com.example.selector.utils.ActivityCompatHelper
 
 object FragmentInjectManager {
@@ -18,11 +17,11 @@ object FragmentInjectManager {
     fun injectFragment(
         activity: FragmentActivity,
         targetFragmentTag: String?,
-        targetFragment: PictureSelectorPreviewFragment,
+        targetFragment: Fragment?
     ) {
         if (ActivityCompatHelper.checkFragmentNonExits(activity, targetFragmentTag)) {
             activity.supportFragmentManager.beginTransaction()
-                .add(R.id.fragment_container, targetFragment, targetFragmentTag)
+                .add(R.id.fragment_container, targetFragment!!, targetFragmentTag)
                 .addToBackStack(targetFragmentTag)
                 .commitAllowingStateLoss()
         }
@@ -38,10 +37,10 @@ object FragmentInjectManager {
     fun injectSystemRoomFragment(
         fragmentManager: FragmentManager,
         targetFragmentTag: String?,
-        targetFragment: Fragment?,
+        targetFragment: Fragment?
     ) {
         fragmentManager.beginTransaction()
-            .add(R.id.content, targetFragment!!, targetFragmentTag)
+            .add(android.R.id.content, targetFragment!!, targetFragmentTag)
             .addToBackStack(targetFragmentTag)
             .commitAllowingStateLoss()
     }

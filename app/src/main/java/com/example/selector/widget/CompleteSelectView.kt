@@ -11,7 +11,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 
-class CompleteSelectView : LinearLayout {
+open class CompleteSelectView : LinearLayout {
     private var tvSelectNum: TextView? = null
     private var tvComplete: TextView? = null
     private var numberChangeAnimation: Animation? = null
@@ -41,14 +41,14 @@ class CompleteSelectView : LinearLayout {
         config = PictureSelectionConfig.getInstance()
     }
 
-    protected fun inflateLayout() {
+    protected open fun inflateLayout() {
         LayoutInflater.from(context).inflate(R.layout.ps_complete_selected_layout, this)
     }
 
     /**
      * 完成选择按钮样式
      */
-    fun setCompleteSelectViewStyle() {
+    open fun setCompleteSelectViewStyle() {
         val selectorStyle: PictureSelectorStyle = PictureSelectionConfig.selectorStyle
         val selectMainStyle: SelectMainStyle = selectorStyle.getSelectMainStyle()
         if (StyleUtils.checkStyleValidity(selectMainStyle.getSelectNormalBackgroundResources())) {

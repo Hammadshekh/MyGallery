@@ -3,6 +3,8 @@ package com.example.compress
 import android.graphics.BitmapFactory
 import android.text.TextUtils
 import android.util.Log
+import com.example.compress.adapter.InputStreamProvider
+import okhttp3.internal.and
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -48,7 +50,7 @@ enum class Checker {
         var length = 0
 
         // ISO/IEC 10918-1:1993(E)
-        while (offset + 3 < jpeg.size && jpeg[offset++] and 0xFF == 0xFF) {
+        while (!(offset + 3 >= jpeg.size || !(jpeg[offset++] and 0xFF))) {
             val marker: Int = jpeg[offset] and 0xFF
 
             // Check if the marker is a padding.

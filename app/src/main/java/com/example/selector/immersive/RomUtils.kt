@@ -2,10 +2,11 @@ package com.example.selector.immersive
 
 import android.os.Build
 import android.text.TextUtils
+import com.example.selector.utils.ValueOf
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
-import java.lang.Exception
+import java.util.*
 import java.util.regex.Pattern
 
 object RomUtils {
@@ -36,7 +37,7 @@ object RomUtils {
     //Flyme V4的displayId格式为 [Flyme OS 4.x.x.xA]
     //Flyme V5的displayId格式为 [Flyme 5.x.x.x beta]
     private val isFlymeV4OrAbove: Boolean
-        private get() = flymeVersion >= 4
+         get() = flymeVersion >= 4
 
     //Flyme V4的displayId格式为 [Flyme OS 4.x.x.xA]
     //Flyme V5的displayId格式为 [Flyme 5.x.x.x beta]
@@ -56,7 +57,7 @@ object RomUtils {
     //MIUI V6对应的versionCode是4
     //MIUI V7对应的versionCode是5
     private val isMIUIV6OrAbove: Boolean
-        private get() {
+         get() {
             val miuiVersionCodeStr = systemProperty
             if (!TextUtils.isEmpty(miuiVersionCodeStr)) {
                 try {
@@ -88,10 +89,10 @@ object RomUtils {
 
     //Android Api 23以上
     private val isAndroid5OrAbove: Boolean
-        private get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
 
     private val systemProperty: String?
-        private get() {
+        get() {
             val line: String
             var input: BufferedReader? = null
             try {
@@ -136,11 +137,11 @@ object RomUtils {
 
     /**/
     private val manufacturer: String
-        private get() {
+        get() {
             try {
                 val manufacturer = Build.MANUFACTURER
                 if (!TextUtils.isEmpty(manufacturer)) {
-                    return manufacturer.toLowerCase()
+                    return manufacturer.lowercase(Locale.getDefault())
                 }
             } catch (ignore: Throwable) { /**/
             }
@@ -149,11 +150,11 @@ object RomUtils {
 
     /**/
     private val brand: String
-        private get() {
+        get() {
             try {
                 val brand = Build.BRAND
                 if (!TextUtils.isEmpty(brand)) {
-                    return brand.toLowerCase()
+                    return brand.lowercase(Locale.getDefault())
                 }
             } catch (ignore: Throwable) { /**/
             }
@@ -166,7 +167,7 @@ object RomUtils {
      * @param str
      * @return
      */
-    fun stringToInt(str: String?): Int {
+    private fun stringToInt(str: String?): Int {
         val pattern = Pattern.compile("^[-\\+]?[\\d]+$")
         return if (pattern.matcher(str).matches()) ValueOf.toInt(str) else 0
     }

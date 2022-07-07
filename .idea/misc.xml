@@ -3,6 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/HP/AndroidStudioProjects/My_Gallery/app/src/main/res/layout/activity_main.xml" value="0.2" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/My_Gallery/app/src/main/res/layout/activity_other.xml" value="0.18" />
+        <entry key="..\:/Users/HP/AndroidStudioProjects/My_Gallery/app/src/main/res/layout/ps_custom_preview_image.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/USER/AndroidStudioProjects/MyGallery/app/src/main/res/layout/ucrop_aspect_ratio.xml" value="0.19270833333333334" />
         <entry key="..\:/Users/USER/AndroidStudioProjects/MyGallery/app/src/main/res/layout/ucrop_controls.xml" value="0.19270833333333334" />
         <entry key="..\:/Users/USER/AndroidStudioProjects/MyGallery/app/src/main/res/layout/ucrop_layout_rotate_wheel.xml" value="0.19270833333333334" />

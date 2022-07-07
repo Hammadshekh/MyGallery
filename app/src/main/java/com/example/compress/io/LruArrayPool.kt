@@ -27,17 +27,17 @@ class LruArrayPool : ArrayPool {
         this.maxSize = maxSize
     }
 
-    @Deprecated("")
+    @Deprecated("", ReplaceWith("put(array)"))
     override fun <T> put(array: T, arrayClass: Class<T>?) {
         put(array)
     }
 
     @Synchronized
     override fun <T> put(array: T) {
-        val arrayClass = array.javaClass as Class<T>
+        val arrayClass = array as Class<T>
         val arrayAdapter = getAdapterFromType(arrayClass)
         val size = arrayAdapter.getArrayLength(array)
-        val arrayBytes: Int = size * arrayAdapter.getElementSizeInBytes()
+        val arrayBytes: Int = size * arrayAdapter.elementSizeInBytes
         if (!isSmallEnoughForReuse(arrayBytes)) {
             return
         }
@@ -50,11 +50,9 @@ class LruArrayPool : ArrayPool {
         evict()
     }
 
-    @Synchronized
-    operator fun <T> get(size: Int, arrayClass: Class<T>): T {
-        val possibleSize = getSizesForAdapter(arrayClass).ceilingKey(size)
-        val key: Key?
-        key = if (mayFillRequest(size, possibleSize)) {
+    override fun <T> get(size: Int, arrayClass: Class<T>?): T {
+        val possibleSize = getSizesForAdapter(arrayClass!!).ceilingKey(size)
+        val key: Key? = if (mayFillRequest(size, possibleSize)) {
             keyPool[possibleSize, arrayClass]
         } else {
             keyPool[size, arrayClass]
@@ -62,16 +60,18 @@ class LruArrayPool : ArrayPool {
         return getForKey(key, arrayClass)
     }
 
-    private fun <T> getForKey(key: Key?, arrayClass: Class<T>): T? {
+
+
+    private fun <T> getForKey(key: Key?, arrayClass: Class<T>): T {
         val arrayAdapter = getAdapterFromType(arrayClass)
-        var result: T? = getArrayForKey(key)
+        var result: T = getArrayForKey(key)
         if (result != null) {
-            currentSize -= arrayAdapter.getArrayLength(result) * arrayAdapter.getElementSizeInBytes()
+            currentSize -= arrayAdapter.getArrayLength(result) * arrayAdapter.elementSizeInBytes
             decrementArrayOfSize(arrayAdapter.getArrayLength(result), arrayClass)
         }
         if (result == null) {
-            if (Log.isLoggable(arrayAdapter.getTag(), Log.VERBOSE)) {
-                Log.v(arrayAdapter.getTag(), "Allocated " + key!!.size + " bytes")
+            if (Log.isLoggable(arrayAdapter.tag, Log.VERBOSE)) {
+                Log.v(arrayAdapter.tag, "Allocated " + key!!.size + " bytes")
             }
             result = arrayAdapter.newArray(key!!.size)
         }
@@ -109,10 +109,10 @@ class LruArrayPool : ArrayPool {
         while (currentSize > size) {
             val evicted = groupedMap.removeLast()
             val arrayAdapter = getAdapterFromObject(evicted)
-            currentSize -= arrayAdapter.getArrayLength(evicted) * arrayAdapter.getElementSizeInBytes()
+            currentSize -= arrayAdapter!!.getArrayLength(evicted) * arrayAdapter.elementSizeInBytes
             decrementArrayOfSize(arrayAdapter.getArrayLength(evicted), evicted!!.javaClass)
-            if (Log.isLoggable(arrayAdapter.getTag(), Log.VERBOSE)) {
-                Log.v(arrayAdapter.getTag(), "evicted: " + arrayAdapter.getArrayLength(evicted))
+            if (Log.isLoggable(arrayAdapter.tag, Log.VERBOSE)) {
+                Log.v(arrayAdapter.tag, "evicted: " + arrayAdapter.getArrayLength(evicted))
             }
         }
     }
@@ -137,18 +137,17 @@ class LruArrayPool : ArrayPool {
         }
         return sizes
     }
-
-    private fun <T> getAdapterFromObject(`object`: T): ArrayAdapterInterface<T> {
-        return getAdapterFromType(`object`.javaClass) as ArrayAdapterInterface<T>
+    private fun <T> getAdapterFromObject(`object`: T): ArrayAdapterInterface<T>? {
+        return getAdapterFromType(`object`.Class) as ArrayAdapterInterface<T>?
     }
 
     private fun <T> getAdapterFromType(arrayPoolClass: Class<T>): ArrayAdapterInterface<T> {
         var adapter = adapters[arrayPoolClass]
         if (adapter == null) {
             adapter = if (arrayPoolClass == IntArray::class.java) {
-                IntegerArrayAdapter()
+                IntegerArrayAdapter("tag")
             } else if (arrayPoolClass == ByteArray::class.java) {
-                ByteArrayAdapter()
+                ByteArrayAdapter("tag")
             } else {
                 throw IllegalArgumentException(
                     "No array pool found for: " + arrayPoolClass.simpleName)
@@ -164,7 +163,7 @@ class LruArrayPool : ArrayPool {
         for (type in sortedSizes.keys) {
             for (size in sortedSizes[type]!!.keys) {
                 val adapter = getAdapterFromType(type)
-                currentSize += size * sortedSizes[type]!![size]!! * adapter.getElementSizeInBytes()
+                currentSize += size * sortedSizes[type]!![size]!! * adapter.elementSizeInBytes
             }
         }
         return currentSize
@@ -177,7 +176,7 @@ class LruArrayPool : ArrayPool {
             return result
         }
 
-        protected override fun create(): Key {
+         override fun create(): Key {
             return Key(this)
         }
     }
@@ -202,7 +201,7 @@ class LruArrayPool : ArrayPool {
             return "Key{" + "size=" + size + "array=" + arrayClass + '}'
         }
 
-        fun offer() {
+        override fun offer() {
             pool.offer(this)
         }
 

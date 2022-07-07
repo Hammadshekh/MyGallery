@@ -9,7 +9,7 @@ import android.provider.Settings
 import androidx.annotation.Size
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import java.lang.Exception
+import com.example.selector.utils.SdkVersionUtils
 
 object PermissionUtil {
     /**
@@ -76,7 +76,7 @@ object PermissionUtil {
                     requestCode)
             } else {
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                val uri = Uri.fromParts("package", fragment.activity!!
+                val uri = Uri.fromParts("package", fragment.requireActivity()
                     .packageName, null)
                 intent.data = uri
                 fragment.startActivityForResult(intent, requestCode)

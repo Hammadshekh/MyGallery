@@ -12,10 +12,4 @@ class IntegerArrayAdapter(override val tag: String?) : ArrayAdapterInterface<Int
     override val elementSizeInBytes: Int
         get() = 4
 
-    companion object {
-        val tag = "IntegerArrayPool"
-            get() = Companion.field
-    }
-
-
 }

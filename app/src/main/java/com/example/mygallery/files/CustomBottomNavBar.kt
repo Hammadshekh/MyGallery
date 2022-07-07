@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import com.example.mygallery.R
+import com.example.selector.widget.BottomNavBar
 
 class CustomBottomNavBar : BottomNavBar, View.OnClickListener {
     constructor(context: Context?) : super(context) {}
@@ -13,7 +14,7 @@ class CustomBottomNavBar : BottomNavBar, View.OnClickListener {
         defStyleAttr) {
     }
 
-    protected fun inflateLayout() {
-        inflate(getContext(), R.layout.ps_custom_bottom_nav_bar, this)
+     override fun inflateLayout() {
+        inflate(context, R.layout.ps_custom_bottom_nav_bar, this)
     }
 }

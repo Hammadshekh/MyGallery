@@ -14,7 +14,7 @@ import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import java.lang.Exception
+import com.example.selector.immersive.RomUtils
 
 object DensityUtil {
     /**
@@ -116,12 +116,14 @@ object DensityUtil {
             // 对于三星手机，android10以下非OneUI2的版本，比如 s8，note8 等设备上，
             // 导航栏显示存在bug："当用户隐藏导航栏时显示输入法的时候导航栏会跟随显示"，会导致隐藏输入法之后判断错误
             // 这个问题在 OneUI 2 & android 10 版本已修复
-            if (RomUtils.isSamsung()
+            if (RomUtils.isSamsung
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
             ) {
                 try {
-                    return Settings.Global.getInt(activity.contentResolver,
-                        "navigationbar_hide_bar_enabled") == 0
+                    return Settings.Global.getInt(
+                        activity.contentResolver,
+                        "navigationbar_hide_bar_enabled"
+                    ) == 0
                 } catch (ignore: Exception) {
                 }
             }
@@ -235,4 +237,3 @@ object DensityUtil {
         return (dpValue * scale + 0.5f).toInt()
     }
 }
-SdkVersionUtils

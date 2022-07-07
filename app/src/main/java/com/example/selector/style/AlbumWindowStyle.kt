@@ -26,7 +26,7 @@ class AlbumWindowStyle : Parcelable {
     var albumAdapterItemTitleColor = 0
 
     constructor() {}
-    protected constructor(`in`: Parcel) {
+     constructor(`in`: Parcel) {
         albumAdapterItemBackground = `in`.readInt()
         albumAdapterItemSelectStyle = `in`.readInt()
         albumAdapterItemTitleSize = `in`.readInt()
@@ -45,7 +45,8 @@ class AlbumWindowStyle : Parcelable {
     }
 
     companion object {
-        val CREATOR: Creator<AlbumWindowStyle> = object : Creator<AlbumWindowStyle?> {
+        @JvmField
+        val CREATOR: Creator<AlbumWindowStyle> = object : Creator<AlbumWindowStyle> {
             override fun createFromParcel(`in`: Parcel): AlbumWindowStyle? {
                 return AlbumWindowStyle(`in`)
             }

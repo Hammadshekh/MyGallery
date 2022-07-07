@@ -2,15 +2,25 @@ package com.example.mygallery.files
 
 import android.content.Context
 import android.util.Log
-import java.util.ArrayList
+import com.example.mygallery.R
+import com.example.mygallery.engine.GlideEngine
+import com.example.mygallery.engine.ImageEngine
+import com.example.selector.basic.IBridgeLoaderFactory
+import com.example.selector.config.InjectResourceSource
+import com.example.selector.engine.*
+import com.example.selector.interfaces.OnInjectLayoutResourceListener
+import com.example.selector.interfaces.OnResultCallbackListener
+import com.luck.picture.lib.entity.LocalMedia
+import java.util.*
 
-class PictureSelectorEngineImp : PictureSelectorEngine {
+class PictureSelectorEngineImp : PictureSelectorEngine,
+    com.example.selector.engine.PictureSelectorEngine {
     /**
      * 重新创建[ImageEngine]引擎
      *
      * @return
      */
-    fun createImageLoaderEngine(): ImageEngine {
+    override fun createImageLoaderEngine(): ImageEngine {
         // TODO 这种情况是内存极度不足的情况下，比如开启开发者选项中的不保留活动或后台进程限制，导致ImageEngine被回收
         return GlideEngine.createGlideEngine()
     }
@@ -20,7 +30,7 @@ class PictureSelectorEngineImp : PictureSelectorEngine {
      *
      * @return
      */
-    fun createCompressEngine(): CompressEngine? {
+    override fun createCompressEngine(): CompressEngine? {
         // TODO 这种情况是内存极度不足的情况下，比如开启开发者选项中的不保留活动或后台进程限制，导致CompressEngine被回收
         return null
     }
@@ -30,7 +40,7 @@ class PictureSelectorEngineImp : PictureSelectorEngine {
      *
      * @return
      */
-    fun createCompressFileEngine(): CompressFileEngine? {
+    override fun createCompressFileEngine(): CompressFileEngine? {
         // TODO 这种情况是内存极度不足的情况下，比如开启开发者选项中的不保留活动或后台进程限制，导致CompressFileEngine被回收
         return null
     }
@@ -40,7 +50,7 @@ class PictureSelectorEngineImp : PictureSelectorEngine {
      *
      * @return
      */
-    fun createLoaderDataEngine(): ExtendLoaderEngine? {
+    override fun createLoaderDataEngine(): ExtendLoaderEngine? {
         // TODO 这种情况是内存极度不足的情况下，比如开启开发者选项中的不保留活动或后台进程限制，导致ExtendLoaderEngine被回收
         return null
     }
@@ -49,7 +59,7 @@ class PictureSelectorEngineImp : PictureSelectorEngine {
      * 重新创建[IBridgeMediaLoader]引擎
      * @return
      */
-    fun onCreateLoader(): IBridgeLoaderFactory? {
+    override fun onCreateLoader(): IBridgeLoaderFactory? {
         // TODO 这种情况是内存极度不足的情况下，比如开启开发者选项中的不保留活动或后台进程限制，导致IBridgeLoaderFactory被回收
         return null
     }
@@ -59,7 +69,7 @@ class PictureSelectorEngineImp : PictureSelectorEngine {
      *
      * @return
      */
-    fun createSandboxFileEngine(): SandboxFileEngine? {
+    override fun createSandboxFileEngine(): SandboxFileEngine? {
         // TODO 这种情况是内存极度不足的情况下，比如开启开发者选项中的不保留活动或后台进程限制，导致SandboxFileEngine被回收
         return null
     }
@@ -69,7 +79,7 @@ class PictureSelectorEngineImp : PictureSelectorEngine {
      *
      * @return
      */
-    fun createUriToFileTransformEngine(): UriToFileTransformEngine? {
+    override fun createUriToFileTransformEngine(): UriToFileTransformEngine? {
         // TODO 这种情况是内存极度不足的情况下，比如开启开发者选项中的不保留活动或后台进程限制，导致UriToFileTransformEngine被回收
         return null
     }
@@ -79,9 +89,9 @@ class PictureSelectorEngineImp : PictureSelectorEngine {
      *
      * @return
      */
-    fun createLayoutResourceListener(): OnInjectLayoutResourceListener {
-        return object : OnInjectLayoutResourceListener() {
-            fun getLayoutResourceId(context: Context?, resourceSource: Int): Int {
+    override fun createLayoutResourceListener(): OnInjectLayoutResourceListener {
+        return object : OnInjectLayoutResourceListener {
+            override fun getLayoutResourceId(context: Context?, resourceSource: Int): Int {
                 return when (resourceSource) {
                     InjectResourceSource.MAIN_SELECTOR_LAYOUT_RESOURCE -> R.layout.ps_custom_fragment_selector
                     InjectResourceSource.PREVIEW_LAYOUT_RESOURCE -> R.layout.ps_custom_fragment_preview
@@ -100,15 +110,15 @@ class PictureSelectorEngineImp : PictureSelectorEngine {
 
     // TODO 这种情况是内存极度不足的情况下，比如开启开发者选项中的不保留活动或后台进程限制，导致OnResultCallbackListener被回收
     // 可以在这里进行一些补救措施，通过广播或其他方式将结果推送到相应页面，防止结果丢失的情况
-    val resultCallbackListener: OnResultCallbackListener<LocalMedia>
-        get() = object : OnResultCallbackListener<LocalMedia?>() {
-            fun onResult(result: ArrayList<LocalMedia?>) {
+    override val resultCallbackListener: OnResultCallbackListener<LocalMedia>
+        get() = object : OnResultCallbackListener<LocalMedia> {
+            override fun onResult(result: ArrayList<LocalMedia>) {
                 // TODO 这种情况是内存极度不足的情况下，比如开启开发者选项中的不保留活动或后台进程限制，导致OnResultCallbackListener被回收
                 // 可以在这里进行一些补救措施，通过广播或其他方式将结果推送到相应页面，防止结果丢失的情况
                 Log.i(TAG, "onResult:" + result.size)
             }
 
-            fun onCancel() {
+            override fun onCancel() {
                 Log.i(TAG, "PictureSelector onCancel")
             }
         }

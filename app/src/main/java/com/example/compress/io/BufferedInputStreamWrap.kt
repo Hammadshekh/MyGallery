@@ -10,7 +10,7 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
      * The buffer containing the current bytes read from the target InputStream.
      */
     @Volatile
-    private var buf: ByteArray
+    private var buf: ByteArray? = null
 
     /**
      * The total number of bytes inside the byte array `buf`.
@@ -64,13 +64,13 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
     // Public API.
     @Synchronized
     fun fixMarkLimit() {
-        markLimit = buf.size
+        markLimit = buf!!.size
     }
 
     @Synchronized
     fun release() {
         if (buf != null) {
-            ArrayPoolProvide.getInstance().put(buf)
+            ArrayPoolProvide.instance!!.put(buf)
             buf = null
         }
     }
@@ -84,7 +84,7 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
     @Throws(IOException::class)
     override fun close() {
         if (buf != null) {
-            ArrayPoolProvide.getInstance().put(buf)
+            ArrayPoolProvide.instance!!.put(buf)
             buf = null
         }
         val localIn = `in`
@@ -93,7 +93,7 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
     }
 
     @Throws(IOException::class)
-    private fun fillbuf(localIn: InputStream, localBuf: ByteArray?): Int {
+    private fun fillBuf(localIn: InputStream, localBuf: ByteArray?): Int {
         var localBuf = localBuf
         if (markPos == -1 || pos - markPos >= markLimit) {
             // Mark position not put or exceeded readLimit
@@ -120,14 +120,14 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
             if (newLength > markLimit) {
                 newLength = markLimit
             }
-            val newbuf: ByteArray = ArrayPoolProvide.getInstance().get(newLength)
+            val newbuf: ByteArray = ArrayPoolProvide.instance!!.get(newLength)
             System.arraycopy(localBuf, 0, newbuf, 0, localBuf.size)
             val oldbuf = localBuf
             // Reassign buf, which will invalidate any local references
             // FIXME: what if buf was null?
             buf = newbuf
             localBuf = buf
-            ArrayPoolProvide.getInstance().put(oldbuf)
+            ArrayPoolProvide.instance!!.put(oldbuf)
         } else if (markPos > 0) {
             System.arraycopy(localBuf, markPos, localBuf, 0, localBuf!!.size - markPos)
         }
@@ -191,12 +191,12 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
         }
 
         // Are there buffered bytes available?
-        if (pos >= count && fillbuf(localIn, localBuf) == -1) {
+        if (pos >= count && fillBuf(localIn, localBuf) == -1) {
             // no, fill buffer
             return -1
         }
         // localBuf may have been invalidated by fillbuf
-        if (localBuf != buf) {
+        if (!localBuf.contentEquals(buf)) {
             localBuf = buf
             if (localBuf == null) {
                 throw streamClosed()
@@ -205,7 +205,7 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
 
         // Did filling the buffer fail with -1 (EOF)?
         return if (count - pos > 0) {
-            localBuf[pos++] and 0xFF
+            localBuf[pos++] + 0xFF
         } else -1
     }
 
@@ -250,30 +250,32 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
             required = byteCount
         }
         while (true) {
-            var read: Int
+            var read: Int? = null
             // If we're not marked and the required size is greater than the buffer,
             // simply read the bytes directly bypassing the buffer.
-            if (markPos == -1 && required >= localBuf.size) {
-                read = localIn.read(buffer, offset, required)
-                if (read == -1) {
-                    return if (required == byteCount) -1 else byteCount - required
-                }
-            } else {
-                if (fillbuf(localIn, localBuf) == -1) {
-                    return if (required == byteCount) -1 else byteCount - required
-                }
-                // localBuf may have been invalidated by fillbuf
-                if (localBuf != buf) {
-                    localBuf = buf
-                    if (localBuf == null) {
-                        throw streamClosed()
+            if (localBuf != null) {
+                if (markPos == -1 && required >= localBuf.size) {
+                    read = localIn.read(buffer, offset, required)
+                    if (read == -1) {
+                        return if (required == byteCount) -1 else byteCount - required
                     }
+                } else {
+                    if (fillBuf(localIn, localBuf) == -1) {
+                        return if (required == byteCount) -1 else byteCount - required
+                    }
+                    // localBuf may have been invalidated by fillbuf
+                    if (!localBuf.contentEquals(buf)) {
+                        localBuf = buf
+                        if (localBuf == null) {
+                            throw streamClosed()
+                        }
+                    }
+                    read = Math.min(count - pos, required)
+                    System.arraycopy(localBuf, pos, buffer, offset, read)
+                    pos += read
                 }
-                read = Math.min(count - pos, required)
-                System.arraycopy(localBuf, pos, buffer, offset, read)
-                pos += read
             }
-            required -= read
+            required -= read!!
             if (required == 0) {
                 return byteCount
             }
@@ -329,7 +331,7 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
         var read = count.toLong() - pos
         pos = count
         if (markPos != -1 && byteCount <= markLimit) {
-            if (fillbuf(localIn, localBuf) == -1) {
+            if (fillBuf(localIn, localBuf) == -1) {
                 return read
             }
             if (count - pos >= byteCount - read) {
@@ -364,6 +366,6 @@ class BufferedInputStreamWrap internal constructor(`in`: InputStream?, bufferSiz
     }
 
     init {
-        buf = ArrayPoolProvide.getInstance().get(bufferSize)
+        buf = ArrayPoolProvide.instance!!.get(bufferSize)
     }
 }

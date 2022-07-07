@@ -7,8 +7,10 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.fragment.app.Fragment
+import com.example.camerax.listener.OnSimpleXPermissionDeniedListener
+import com.example.camerax.listener.OnSimpleXPermissionDescriptionListener
 import com.example.camerax.utils.FileUtils
-import java.lang.NullPointerException
+import com.example.ucrop.BuildConfig.LIBRARY_PACKAGE_NAME
 
 class SimpleCameraX private constructor() {
     private val mCameraIntent: Intent
@@ -288,7 +290,7 @@ class SimpleCameraX private constructor() {
     }
 
     companion object {
-        private val EXTRA_PREFIX: String = BuildConfig.LIBRARY_PACKAGE_NAME
+        private val EXTRA_PREFIX: String = LIBRARY_PACKAGE_NAME
         val EXTRA_OUTPUT_PATH_DIR = EXTRA_PREFIX + ".OutputPathDir"
         val EXTRA_CAMERA_FILE_NAME = EXTRA_PREFIX + ".CameraFileName"
         val EXTRA_CAMERA_MODE = EXTRA_PREFIX + ".CameraMode"

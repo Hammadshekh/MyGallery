@@ -1,5 +1,12 @@
 package com.example.mygallery.files
 
+import com.example.mygallery.engine.ImageEngine
+import com.example.selector.basic.IBridgeLoaderFactory
+import com.example.selector.engine.*
+import com.example.selector.interfaces.OnInjectLayoutResourceListener
+import com.example.selector.interfaces.OnResultCallbackListener
+import com.luck.picture.lib.entity.LocalMedia
+
 interface PictureSelectorEngine {
     /**
      * Create ImageLoad Engine
@@ -62,5 +69,5 @@ interface PictureSelectorEngine {
      *
      * @return
      */
-    val resultCallbackListener: OnResultCallbackListener<LocalMedia?>?
+    val resultCallbackListener: OnResultCallbackListener<LocalMedia>
 }

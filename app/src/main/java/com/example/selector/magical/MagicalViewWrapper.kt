@@ -4,21 +4,22 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.LinearLayout
+import kotlin.math.roundToInt
 
 class MagicalViewWrapper(private val viewWrapper: View) {
-    private val params: MarginLayoutParams
+    private val params: MarginLayoutParams = viewWrapper.layoutParams as MarginLayoutParams
     val width: Int
         get() = params.width
     val height: Int
         get() = params.height
 
     fun setWidth(width: Float) {
-        params.width = Math.round(width)
+        params.width = width.roundToInt()
         viewWrapper.layoutParams = params
     }
 
-    fun setHeight(height: Float) {
-        params.height = Math.round(height)
+    fun setHeight(height: Int) {
+        params.height = height.toDouble().roundToInt()
         viewWrapper.layoutParams = params
     }
 
@@ -48,7 +49,6 @@ class MagicalViewWrapper(private val viewWrapper: View) {
         }
 
     init {
-        params = viewWrapper.layoutParams as MarginLayoutParams
         if (params is LinearLayout.LayoutParams) {
             params.gravity = Gravity.START
         }

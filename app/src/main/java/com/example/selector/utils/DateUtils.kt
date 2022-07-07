@@ -2,6 +2,8 @@ package com.example.selector.utils
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.example.mygallery.R
+import com.google.android.exoplayer2.C
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
@@ -140,8 +142,8 @@ object DateUtils {
      * @param eTime
      * @return
      */
-    fun cdTime(sTime: Long, eTime: Long): String {
+     fun cdTime(sTime: Long, eTime: Long): String {
         val diff = eTime - sTime
-        return if (diff > 1000) diff / 1000.toString() + "秒" else diff.toString() + "毫秒"
+        return if (diff > 1000) diff/ 1000.toString() + "秒" else diff.toString() + "毫秒"
     }
 }

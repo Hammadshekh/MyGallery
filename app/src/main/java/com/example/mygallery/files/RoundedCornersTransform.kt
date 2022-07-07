@@ -1,10 +1,10 @@
 package com.example.mygallery.files
 
 import android.graphics.*
+import com.squareup.picasso.Transformation
 
-/*
 class RoundedCornersTransform(private val roundingRadius: Float) : Transformation {
-    fun transform(source: Bitmap): Bitmap {
+    override fun transform(source: Bitmap): Bitmap {
         val size = Math.min(source.width, source.height)
         val x = (source.width - size) / 2
         val y = (source.height - size) / 2
@@ -16,11 +16,11 @@ class RoundedCornersTransform(private val roundingRadius: Float) : Transformatio
         val canvas = Canvas(bitmap)
         val paint = Paint()
         val shader =
-            BitmapShader(squaredBitmap, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP)
+            BitmapShader(squaredBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
         paint.shader = shader
         paint.isAntiAlias = true
         val r = if (size / roundingRadius > 0) roundingRadius else 8f
-        canvas.drawRoundRect(RectF(0, 0, source.width.toFloat(), source.height.toFloat()),
+        canvas.drawRoundRect(RectF(0f, 0f, source.width.toFloat(), source.height.toFloat()),
             r,
             r,
             paint)
@@ -28,8 +28,7 @@ class RoundedCornersTransform(private val roundingRadius: Float) : Transformatio
         return bitmap
     }
 
-    fun key(): String {
+    override fun key(): String {
         return "rounded_corners"
     }
 }
-*/

@@ -3,7 +3,6 @@ package com.example.selector.magical
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
-import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.content.Context
 import android.os.Build
 import android.transition.*
@@ -15,8 +14,10 @@ import android.view.animation.Interpolator
 import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import androidx.viewpager2.widget.ViewPager2
+import com.example.selector.config.PictureSelectionConfig
+import com.example.selector.utils.DensityUtil
 
-class MagicalView @JvmOverloads constructor(
+class MagicalView (
     context: Context?,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -52,7 +53,7 @@ class MagicalView @JvmOverloads constructor(
         backgroundView.setBackgroundColor(color)
     }
 
-    fun startNormal(realWidth: Int, realHeight: Int, showImmediately: Boolean) {
+    private fun startNormal(realWidth: Int, realHeight: Int, showImmediately: Boolean) {
         this.realWidth = realWidth
         this.realHeight = realHeight
         mOriginLeft = 0
@@ -95,7 +96,7 @@ class MagicalView @JvmOverloads constructor(
      * getScreenSize
      */
     private val screenSize: Unit
-        private get() {
+         get() {
             screenWidth = DensityUtil.getRealScreenWidth(context)
             screenHeight = if (isPreviewFullScreenMode) {
                 DensityUtil.getRealScreenHeight(context)
@@ -119,7 +120,7 @@ class MagicalView @JvmOverloads constructor(
         if (displayHeight > screenHeight) {
             screenHeight = appInScreenHeight
             if (showImmediately) {
-                magicalWrapper.setWidth(screenWidth)
+                magicalWrapper.setWidth(screenWidth.toFloat())
                 magicalWrapper.setHeight(screenHeight)
             }
         }
@@ -150,7 +151,7 @@ class MagicalView @JvmOverloads constructor(
         val locationImage = IntArray(2)
         contentLayout.getLocationOnScreen(locationImage)
         targetEndLeft = 0
-        if (screenWidth / screenHeight as Float<realWidth / realHeight.toFloat()) {
+        if (screenWidth / screenHeight < realWidth.toFloat() / realHeight.toFloat()) {
             targetImageWidth = screenWidth
             targetImageHeight = (targetImageWidth * (realHeight / realWidth.toFloat())).toInt()
             targetImageTop = (screenHeight - targetImageHeight) / 2
@@ -160,10 +161,10 @@ class MagicalView @JvmOverloads constructor(
             targetImageTop = 0
             targetEndLeft = (screenWidth - targetImageWidth) / 2
         }
-        magicalWrapper.setWidth(mOriginWidth)
+        magicalWrapper.setWidth(mOriginWidth.toFloat())
         magicalWrapper.setHeight(mOriginHeight)
-        magicalWrapper.setMarginLeft(mOriginLeft)
-        magicalWrapper.setMarginTop(mOriginTop)
+        magicalWrapper.marginLeft = (mOriginLeft)
+        magicalWrapper.marginTop = (mOriginTop)
     }
 
     private fun beginShow(showImmediately: Boolean) {
@@ -196,10 +197,8 @@ class MagicalView @JvmOverloads constructor(
             })
             if (PictureSelectionConfig.interpolatorFactory != null) {
                 val interpolator: Interpolator =
-                    PictureSelectionConfig.interpolatorFactory.newInterpolator()
-                if (interpolator != null) {
-                    valueAnimator.interpolator = interpolator
-                }
+                    PictureSelectionConfig.interpolatorFactory!!.newInterpolator()!!
+                valueAnimator.interpolator = interpolator
             }
             valueAnimator.setDuration(animationDuration).start()
             changeBackgroundViewAlpha(false)
@@ -209,9 +208,7 @@ class MagicalView @JvmOverloads constructor(
     private fun setShowEndParams() {
         isAnimating = false
         changeContentViewToFullscreen()
-        if (onMagicalViewCallback != null) {
-            onMagicalViewCallback.onBeginMagicalAnimComplete(this@MagicalView, false)
-        }
+        onMagicalViewCallback?.onBeginMagicalAnimComplete(this@MagicalView, false)
     }
 
     private fun showNormalMin(
@@ -248,18 +245,18 @@ class MagicalView @JvmOverloads constructor(
     ) {
         if (showImmediately) {
             magicalWrapper.setWidth(endWidth)
-            magicalWrapper.setHeight(endHeight)
-            magicalWrapper.setMarginLeft(endLeft.toInt())
-            magicalWrapper.setMarginTop(endY.toInt())
+            magicalWrapper.setHeight(endHeight.toInt())
+            magicalWrapper.marginLeft = (endLeft.toInt())
+            magicalWrapper.marginTop = (endY.toInt())
         } else {
             val xOffset = animRatio * (endLeft - startLeft)
             val widthOffset = animRatio * (endWidth - startWidth)
             val heightOffset = animRatio * (endHeight - startHeight)
             val topOffset = animRatio * (endY - startY)
             magicalWrapper.setWidth(startWidth + widthOffset)
-            magicalWrapper.setHeight(startHeight + heightOffset)
-            magicalWrapper.setMarginLeft((startLeft + xOffset).toInt())
-            magicalWrapper.setMarginTop((startY + topOffset).toInt())
+            magicalWrapper.setHeight((startHeight + heightOffset).toInt())
+            magicalWrapper.marginLeft = ((startLeft + xOffset).toInt())
+            magicalWrapper.marginTop = ((startY + topOffset).toInt())
         }
     }
 
@@ -271,9 +268,7 @@ class MagicalView @JvmOverloads constructor(
             backToMinWithoutView()
             return
         }
-        if (onMagicalViewCallback != null) {
-            onMagicalViewCallback.onBeginBackMinAnim()
-        }
+        onMagicalViewCallback?.onBeginBackMinAnim()
         beginBackToMin(false)
         backToMinWithTransition()
     }
@@ -291,17 +286,17 @@ class MagicalView @JvmOverloads constructor(
             beginBackToMin(true)
             contentLayout.translationX = 0f
             contentLayout.translationY = 0f
-            magicalWrapper.setWidth(mOriginWidth)
+            magicalWrapper.setWidth(mOriginWidth.toFloat())
             magicalWrapper.setHeight(mOriginHeight)
-            magicalWrapper.setMarginTop(mOriginTop)
-            magicalWrapper.setMarginLeft(mOriginLeft)
+            magicalWrapper.marginTop = (mOriginTop)
+            magicalWrapper.marginLeft = (mOriginLeft)
             changeBackgroundViewAlpha(true)
         }
     }
 
     private fun beginBackToMin(isResetSize: Boolean) {
         if (isResetSize) {
-            onMagicalViewCallback.onBeginBackMinMagicalFinish(true)
+            onMagicalViewCallback?.onBeginBackMinMagicalFinish(true)
         }
     }
 
@@ -310,7 +305,7 @@ class MagicalView @JvmOverloads constructor(
             .setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     if (onMagicalViewCallback != null) {
-                        onMagicalViewCallback.onMagicalViewFinish()
+                        onMagicalViewCallback?.onMagicalViewFinish()
                     }
                 }
             }).start()
@@ -321,14 +316,14 @@ class MagicalView @JvmOverloads constructor(
      * @param isAlpha 是否透明
      */
     private fun changeBackgroundViewAlpha(isAlpha: Boolean) {
-        val end: Float = if (isAlpha) 0 else 1f
+        val end: Float = if (isAlpha) 0f else 1f
         val valueAnimator = ValueAnimator.ofFloat(mAlpha, end)
         valueAnimator.addUpdateListener { animation ->
             isAnimating = true
             mAlpha = animation.animatedValue as Float
             backgroundView.alpha = mAlpha
             if (onMagicalViewCallback != null) {
-                onMagicalViewCallback.onBackgroundAlpha(mAlpha)
+                onMagicalViewCallback?.onBackgroundAlpha(mAlpha)
             }
         }
         valueAnimator.addListener(object : AnimatorListenerAdapter() {
@@ -336,7 +331,7 @@ class MagicalView @JvmOverloads constructor(
                 isAnimating = false
                 if (isAlpha) {
                     if (onMagicalViewCallback != null) {
-                        onMagicalViewCallback.onMagicalViewFinish()
+                        onMagicalViewCallback?.onMagicalViewFinish()
                     }
                 }
             }
@@ -354,9 +349,9 @@ class MagicalView @JvmOverloads constructor(
         targetImageWidth = screenWidth
         targetImageTop = 0
         magicalWrapper.setHeight(screenHeight)
-        magicalWrapper.setWidth(screenWidth)
-        magicalWrapper.setMarginTop(0)
-        magicalWrapper.setMarginLeft(0)
+        magicalWrapper.setWidth(screenWidth.toFloat())
+        magicalWrapper.marginTop = (0)
+        magicalWrapper.marginLeft = (0)
     }
 
     fun setBackgroundAlpha(mAlpha: Float) {
@@ -409,7 +404,7 @@ class MagicalView @JvmOverloads constructor(
     }
 
     init {
-        val config: PictureSelectionConfig = PictureSelectionConfig.getInstance()
+        val config: PictureSelectionConfig = PictureSelectionConfig.instance!!
         isPreviewFullScreenMode = config.isPreviewFullScreenMode
         appInScreenHeight = DensityUtil.getRealScreenHeight(getContext())
         screenSize

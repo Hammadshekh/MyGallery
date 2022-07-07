@@ -28,7 +28,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.ItemAnimator
 import androidx.recyclerview.widget.SimpleItemAnimator
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
@@ -45,7 +44,7 @@ import java.lang.Exception
 import java.lang.NullPointerException
 import java.util.*
 
-class PictureSelectorPreviewFragment : PictureCommonFragment() {
+open class PictureSelectorPreviewFragment : PictureCommonFragment() {
     protected var mData: ArrayList<LocalMedia?>? = ArrayList<LocalMedia?>()
     protected var magicalView: MagicalView? = null
     var viewPager2: ViewPager2? = null
@@ -110,7 +109,7 @@ class PictureSelectorPreviewFragment : PictureCommonFragment() {
     fun setInternalPreviewData(
         isBottomPreview: Boolean, currentAlbumName: String?, isShowCamera: Boolean,
         position: Int, totalNum: Int, page: Int, currentBucketId: Long,
-        data: ArrayList<LocalMedia?>?,
+        data: ArrayList<LocalMedia>,
     ) {
         this.mPage = page
         mBucketId = currentBucketId
@@ -133,7 +132,7 @@ class PictureSelectorPreviewFragment : PictureCommonFragment() {
     fun setExternalPreviewData(
         position: Int,
         totalNum: Int,
-        data: ArrayList<LocalMedia?>?,
+        data: ArrayList<LocalMedia>,
         isDisplayDelete: Boolean,
     ) {
         mData = data
@@ -1007,7 +1006,7 @@ class PictureSelectorPreviewFragment : PictureCommonFragment() {
         completeSelectView.setVisibility(View.GONE)
     }
 
-    protected fun createAdapter(): PicturePreviewAdapter {
+    protected open fun createAdapter(): PicturePreviewAdapter {
         return PicturePreviewAdapter()
     }
 

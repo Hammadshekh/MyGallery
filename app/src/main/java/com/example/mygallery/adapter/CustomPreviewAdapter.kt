@@ -1,12 +1,32 @@
 package com.example.mygallery.adapter
 
+import android.graphics.Bitmap
+import android.graphics.PointF
+import android.graphics.drawable.Drawable
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.annotation.NonNull
+import androidx.annotation.Nullable
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import com.davemorrissey.labs.subscaleview.ImageSource
+import com.davemorrissey.labs.subscaleview.ImageViewState
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+import com.example.mygallery.R
+import com.example.selector.adapter.holder.BasePreviewHolder
+import com.example.selector.utils.ActivityCompatHelper
+import com.example.selector.utils.MediaUtils
+import com.luck.picture.lib.entity.LocalMedia
+
 
 class CustomPreviewAdapter : PicturePreviewAdapter() {
     @NonNull
-    fun onCreateViewHolder(@NonNull parent: ViewGroup, viewType: Int): BasePreviewHolder {
+    override fun onCreateViewHolder(@NonNull parent: ViewGroup, viewType: Int): BasePreviewHolder {
         return if (viewType == BasePreviewHolder.ADAPTER_TYPE_IMAGE) {
             // 这里以重写自定义图片预览为例
-            val itemView: View = LayoutInflater.from(parent.getContext())
+            val itemView: View = LayoutInflater.from(parent.context)
                 .inflate(R.layout.ps_custom_preview_image, parent, false)
             CustomPreviewImageHolder(itemView)
         } else {
@@ -14,67 +34,59 @@ class CustomPreviewAdapter : PicturePreviewAdapter() {
         }
     }
 
-    class CustomPreviewImageHolder(@NonNull itemView: View?) :
+    class CustomPreviewImageHolder(@NonNull itemView: View) :
         BasePreviewHolder(itemView) {
         var subsamplingScaleImageView: SubsamplingScaleImageView? = null
-        protected fun findViews(itemView: View) {
+        override fun findViews(itemView: View) {
             super.findViews(itemView)
             subsamplingScaleImageView = itemView.findViewById(R.id.big_preview_image)
         }
 
-        protected fun loadImage(media: LocalMedia, maxWidth: Int, maxHeight: Int) {
-            if (!ActivityCompatHelper.assertValidRequest(itemView.getContext())) {
+        override fun loadImage(media: LocalMedia, maxWidth: Int, maxHeight: Int) {
+            if (!ActivityCompatHelper.assertValidRequest(itemView.context)) {
                 return
             }
-            Glide.with(itemView.getContext())
+            Glide.with(itemView.context)
                 .asBitmap()
-                .load(media.getAvailablePath())
+                .load(media.availablePath)
                 .into(object : CustomTarget<Bitmap?>() {
-                    fun onResourceReady(
+                    override fun onResourceReady(
                         @NonNull resource: Bitmap,
                         @Nullable transition: Transition<in Bitmap?>?,
                     ) {
-                        if (MediaUtils.isLongImage(resource.getWidth(), resource.getHeight())) {
-                            subsamplingScaleImageView.setVisibility(View.VISIBLE)
-                            val scale: Float = Math.max(screenWidth / resource.getWidth() as Float,
-                                screenHeight / resource.getHeight() as Float)
-                            subsamplingScaleImageView.setImage(ImageSource.cachedBitmap(resource),
-                                ImageViewState(scale, PointF(0, 0), 0))
+                        if (MediaUtils.isLongImage(resource.width, resource.height)) {
+                            subsamplingScaleImageView!!.visibility = View.VISIBLE
+                            val scale: Float = Math.max(screenWidth / resource.width as Float,
+                                screenHeight / resource.height as Float)
+                            subsamplingScaleImageView!!.setImage(
+                                ImageSource.cachedBitmap(resource),
+                                ImageViewState(scale, PointF(0f, 0f), 0)
+                            )
                         } else {
-                            subsamplingScaleImageView.setVisibility(View.GONE)
-                            coverImageView.setImageBitmap(resource)
+                            subsamplingScaleImageView!!.visibility = View.GONE
+                            coverImageView!!.setImageBitmap(resource)
                         }
                     }
 
-                    fun onLoadFailed(@Nullable errorDrawable: Drawable?) {}
-                    fun onLoadCleared(@Nullable placeholder: Drawable?) {}
+                    override fun onLoadFailed(@Nullable errorDrawable: Drawable?) {}
+                    override fun onLoadCleared(@Nullable placeholder: Drawable?) {}
                 })
         }
 
-        protected fun setOnClickEventListener() {
-            if (MediaUtils.isLongImage(media.getWidth(), media.getHeight())) {
-                subsamplingScaleImageView.setOnClickListener(object : OnClickListener() {
-                    fun onClick(v: View?) {
-                        if (mPreviewEventListener != null) {
-                            mPreviewEventListener.onBackPressed()
-                        }
-                    }
-                })
+        override fun setOnClickEventListener() {
+            if (MediaUtils.isLongImage(media!!.width, media!!.height)) {
+                subsamplingScaleImageView!!.setOnClickListener { mPreviewEventListener?.onBackPressed() }
             } else {
                 super.setOnClickEventListener()
             }
         }
 
-        protected fun setOnLongClickEventListener() {
-            if (MediaUtils.isLongImage(media.getWidth(), media.getHeight())) {
-                subsamplingScaleImageView.setOnLongClickListener(object : OnLongClickListener() {
-                    fun onLongClick(view: View?): Boolean {
-                        if (mPreviewEventListener != null) {
-                            mPreviewEventListener.onLongPressDownload(media)
-                        }
-                        return false
-                    }
-                })
+         override fun setOnLongClickEventListener() {
+            if (MediaUtils.isLongImage(media!!.width, media!!.height)) {
+                subsamplingScaleImageView!!.setOnLongClickListener {
+                    mPreviewEventListener?.onLongPressDownload(media)
+                    false
+                }
             } else {
                 super.setOnLongClickEventListener()
             }
